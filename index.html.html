@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCID Registry — Trading Card Universal Identifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1f3d;
+    --navy-mid: #1a3260;
+    --navy-light: #234080;
+    --gold: #c8a84b;
+    --gold-light: #e8c96a;
+    --gold-pale: #f5e9c4;
+    --cream: #faf7f0;
+    --cream-dark: #f0ead8;
+    --text: #1a1a2e;
+    --text-mid: #4a4a6a;
+    --text-light: #8a8aaa;
+    --white: #ffffff;
+    --card-bg: #ffffff;
+    --border: rgba(200, 168, 75, 0.25);
+    --shadow: 0 4px 24px rgba(15, 31, 61, 0.12);
+    --shadow-lg: 0 12px 48px rgba(15, 31, 61, 0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(200,168,75,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(35,64,128,0.4) 0%, transparent 50%),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 80px,
+        rgba(255,255,255,0.015) 80px,
+        rgba(255,255,255,0.015) 81px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 80px,
+        rgba(255,255,255,0.015) 80px,
+        rgba(255,255,255,0.015) 81px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid rgba(200,168,75,0.2);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-block {}
+
+  .logo-wordmark {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--white);
+  }
+
+  .logo-wordmark span {
+    color: var(--gold);
+  }
+
+  .logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 6px;
+    opacity: 0.85;
+  }
+
+  .header-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(200,168,75,0.1);
+    border: 1px solid rgba(200,168,75,0.3);
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold-light);
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* SEARCH SECTION */
+  .search-section {
+    padding: 48px 0 32px;
+  }
+
+  .search-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  .search-box {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(200,168,75,0.3);
+    border-radius: 8px;
+    padding: 16px 20px 16px 52px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  .search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .search-input:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.09);
+    box-shadow: 0 0 0 3px rgba(200,168,75,0.12);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .search-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    padding: 16px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover { background: var(--gold-light); }
+  .search-btn:active { transform: scale(0.98); }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-right: 4px;
+  }
+
+  .filter-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-chip:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(200,168,75,0.08);
+  }
+
+  .filter-chip.active {
+    background: rgba(200,168,75,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+
+  /* SEARCH MODE TABS */
+  .search-modes {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 4px;
+    width: fit-content;
+  }
+
+  .mode-tab {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+  }
+
+  .mode-tab.active {
+    background: rgba(200,168,75,0.2);
+    color: var(--gold-light);
+  }
+
+  .mode-tab:hover:not(.active) {
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* RESULTS */
+  .results-section { padding-bottom: 80px; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .results-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-light);
+    letter-spacing: 0.1em;
+  }
+
+  .results-count strong {
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+
+  /* CARD */
+  .result-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .result-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(200,168,75,0.3);
+    transform: translateX(2px);
+  }
+
+  .result-card:hover::before { opacity: 1; }
+
+  .result-card.expanded {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(200,168,75,0.4);
+  }
+
+  .result-card.expanded::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .card-main { flex: 1; min-width: 0; }
+
+  .card-tcid {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .card-player {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .card-product {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .tag-sport {
+    background: rgba(59,130,246,0.15);
+    color: #93c5fd;
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  .tag-mfr {
+    background: rgba(200,168,75,0.1);
+    color: var(--gold-light);
+    border: 1px solid rgba(200,168,75,0.2);
+  }
+
+  .tag-auto {
+    background: rgba(34,197,94,0.1);
+    color: #86efac;
+    border: 1px solid rgba(34,197,94,0.2);
+  }
+
+  .tag-relic {
+    background: rgba(168,85,247,0.1);
+    color: #d8b4fe;
+    border: 1px solid rgba(168,85,247,0.2);
+  }
+
+  .tag-parallel {
+    background: rgba(249,115,22,0.1);
+    color: #fdba74;
+    border: 1px solid rgba(249,115,22,0.2);
+  }
+
+  .card-chevron {
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.2s, color 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .result-card.expanded .card-chevron {
+    transform: rotate(180deg);
+    color: var(--gold);
+  }
+
+  /* EXPANDED DETAIL */
+  .card-detail {
+    display: none;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .result-card.expanded .card-detail { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .detail-field {}
+
+  .detail-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .detail-val {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--white);
+  }
+
+  .detail-val.mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold-light);
+  }
+
+  .detail-val.empty { color: rgba(255,255,255,0.25); font-style: italic; font-weight: 400; }
+
+  /* COPY BUTTON */
+  .copy-tcid-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    background: rgba(200,168,75,0.1);
+    border: 1px solid rgba(200,168,75,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--gold-light);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-tcid-btn:hover {
+    background: rgba(200,168,75,0.18);
+    border-color: var(--gold);
+  }
+
+  .copy-tcid-btn.copied {
+    color: #86efac;
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.08);
+  }
+
+  /* EMPTY / LOADING STATES */
+  .state-message {
+    text-align: center;
+    padding: 64px 24px;
+  }
+
+  .state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  .state-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+  }
+
+  .state-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.3);
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {}
+
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 32px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.08em;
+  }
+
+  .footer-cc {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+  }
+
+  .cc-badge {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  /* LOADING ANIMATION */
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .loading-dots span {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .logo-wordmark { font-size: 38px; }
+    .search-box { flex-direction: column; }
+    .search-btn { width: 100%; text-align: center; }
+    .stats-bar { gap: 20px; }
+    .stat-val { font-size: 22px; }
+    .header-badge { display: none; }
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <div class="logo-wordmark">TC<span>ID</span></div>
+        <div class="logo-sub">Trading Card Universal Identifier &mdash; Free Registry Lookup</div>
+      </div>
+      <div class="header-badge">
+        <div class="badge-dot"></div>
+        PROTOTYPE REGISTRY &mdash; V2
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-val" id="stat-total">5,024</div>
+      <div class="stat-label">Total Identifiers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">4</div>
+      <div class="stat-label">Sports</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">3</div>
+      <div class="stat-label">Manufacturers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">1,156</div>
+      <div class="stat-label">Autograph Records</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">208</div>
+      <div class="stat-label">Relic Records</div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <div class="search-modes">
+      <button class="mode-tab active" onclick="setMode('all')">All Fields</button>
+      <button class="mode-tab" onclick="setMode('tcid')">By TCID</button>
+      <button class="mode-tab" onclick="setMode('player')">By Player</button>
+      <button class="mode-tab" onclick="setMode('product')">By Product</button>
+    </div>
+
+    <div class="search-label" id="search-label">SEARCH THE REGISTRY</div>
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          class="search-input"
+          type="text"
+          id="search-input"
+          placeholder="Search by player, TCID, product, team..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+      </div>
+      <button class="search-btn" onclick="runSearch()">Lookup</button>
+    </div>
+
+    <div class="filters">
+      <span class="filter-label">Sport:</span>
+      <div class="filter-chip active" onclick="toggleFilter(this, 'sport', '')" data-val="">All</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'sport', 'Baseball')" data-val="Baseball">Baseball</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'sport', 'Basketball')" data-val="Basketball">Basketball</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'sport', 'Football')" data-val="Football">Football</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'sport', 'Hockey')" data-val="Hockey">Hockey</div>
+
+      <span class="filter-label" style="margin-left:8px">Mfr:</span>
+      <div class="filter-chip active" onclick="toggleFilter(this, 'mfr', '')" data-val="">All</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'mfr', 'Topps')" data-val="Topps">Topps</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'mfr', 'Panini')" data-val="Panini">Panini</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'mfr', 'Leaf')" data-val="Leaf">Leaf</div>
+
+      <span class="filter-label" style="margin-left:8px">Type:</span>
+      <div class="filter-chip active" onclick="toggleFilter(this, 'type', '')" data-val="">All</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'type', 'auto')" data-val="auto">Autograph</div>
+      <div class="filter-chip" onclick="toggleFilter(this, 'type', 'relic')" data-val="relic">Relic</div>
+    </div>
+  </div>
+
+  <div class="results-section" id="results-section">
+    <div class="state-message" id="initial-state">
+      <div class="state-icon">⬡</div>
+      <div class="state-title">Enter a search to begin</div>
+      <div class="state-sub">Search by player name, TCID code, product name, or team. Use filters to narrow by sport or manufacturer.</div>
+    </div>
+    <div id="results-container" style="display:none"></div>
+  </div>
+
+</div>
+
+<div class="container">
+  <footer>
+    <div class="footer-left">TCID REGISTRY &mdash; PROTOTYPE V2 &mdash; 2026</div>
+    <div class="footer-cc">
+      <span class="cc-badge">CC</span>
+      IDENTIFIER IS FREE UNDER CREATIVE COMMONS &mdash; API ACCESS LICENSED SEPARATELY
+    </div>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION
+// When you have a live Snowflake API endpoint, set this:
+// const API_ENDPOINT = 'https://your-api-endpoint.com/lookup';
+// const USE_API = true;
+// For demo, we use local data:
+const USE_API = false;
+const API_ENDPOINT = null;
+// ============================================================
+
+// Search state
+let activeMode = 'all';
+let activeFilters = { sport: '', mfr: '', type: '' };
+
+// Sample registry data -- 60 representative records from V2
+// In production these come from the Snowflake API
+const REGISTRY = [
+  {tcid:"TC-4X7KQ29R3A",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"1",player:"Aaron Judge",team:"New York Yankees",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-8M2NR74K5B",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"1",player:"Aaron Judge",team:"New York Yankees",card_type:"Parallel",parallel:"Gold Foil",print_run:"2025",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-3P9QW15X2C",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"1",player:"Aaron Judge",team:"New York Yankees",card_type:"Parallel",parallel:"Red Foil",print_run:"5",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-7K1LM83Y6D",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"1",player:"Aaron Judge",team:"New York Yankees",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-2R6SB47N9E",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"44",player:"Shohei Ohtani",team:"Los Angeles Dodgers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-5W0TJ62A1F",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"44",player:"Shohei Ohtani",team:"Los Angeles Dodgers",card_type:"Parallel",parallel:"Rainbow Foil",print_run:"",channel:"Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-9H4VK38C7G",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"44",player:"Shohei Ohtani",team:"Los Angeles Dodgers",card_type:"Auto",parallel:"Gold Auto",print_run:"10",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-1D8XP05Q4H",sport:"Baseball",manufacturer:"Topps",season:"2024",product:"Topps Series 1",card_num:"100",player:"Fernando Tatis Jr.",team:"San Diego Padres",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-6F3YG91M8I",sport:"Baseball",manufacturer:"Topps",season:"2024",product:"Topps Series 1",card_num:"100",player:"Fernando Tatis Jr.",team:"San Diego Padres",card_type:"Relic",parallel:"Base Relic",print_run:"",channel:"Hobby",autograph:"No",relic:"Yes",notes:"Jersey relic"},
+  {tcid:"TC-0E7ZH24B3J",sport:"Baseball",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-BJ1",player:"Brice Junk",team:"N/A",card_type:"Auto",parallel:"Gold",print_run:"25",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Prospect auto"},
+  {tcid:"TC-4A1IC57N6K",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"1",player:"LeBron James",team:"Los Angeles Lakers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-8B5JD90R2L",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"1",player:"LeBron James",team:"Los Angeles Lakers",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-3C9KE23W7M",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"1",player:"LeBron James",team:"Los Angeles Lakers",card_type:"Parallel",parallel:"Gold Prizm",print_run:"10",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-7D4LF68A1N",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"1",player:"LeBron James",team:"Los Angeles Lakers",card_type:"Auto",parallel:"Gold Prizm Auto",print_run:"10",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-2E8MG15B5O",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"77",player:"Victor Wembanyama",team:"San Antonio Spurs",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-5F3NH52C9P",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"77",player:"Victor Wembanyama",team:"San Antonio Spurs",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-9G7OI89D4Q",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"77",player:"Victor Wembanyama",team:"San Antonio Spurs",card_type:"Parallel",parallel:"Red Ice Prizm",print_run:"",channel:"Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-1H2PJ36E8R",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"77",player:"Victor Wembanyama",team:"San Antonio Spurs",card_type:"Auto",parallel:"Prizm Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-6I6QK73F3S",sport:"Basketball",manufacturer:"Panini",season:"2023-24",product:"Panini Prizm",card_num:"269",player:"Chet Holmgren",team:"Oklahoma City Thunder",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:"Rookie"},
+  {tcid:"TC-0J1RL10G7T",sport:"Basketball",manufacturer:"Panini",season:"2023-24",product:"Panini Prizm",card_num:"269",player:"Chet Holmgren",team:"Oklahoma City Thunder",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:"Rookie Silver"},
+  {tcid:"TC-4K5SM47H2U",sport:"Basketball",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-BP1",player:"Bronny James",team:"Los Angeles Lakers",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto"},
+  {tcid:"TC-8L9TN84I6V",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"1",player:"Patrick Mahomes",team:"Kansas City Chiefs",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-3M4UO21J1W",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"1",player:"Patrick Mahomes",team:"Kansas City Chiefs",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-7N8VP58K5X",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"1",player:"Patrick Mahomes",team:"Kansas City Chiefs",card_type:"Parallel",parallel:"Gold Prizm",print_run:"10",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-2O3WQ95L9Y",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"1",player:"Patrick Mahomes",team:"Kansas City Chiefs",card_type:"Relic",parallel:"Base Relic",print_run:"",channel:"Hobby",autograph:"No",relic:"Yes",notes:"Jersey relic"},
+  {tcid:"TC-5P7XR32M4Z",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"332",player:"Caleb Williams",team:"Chicago Bears",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:"Rookie"},
+  {tcid:"TC-9Q2YS69N8A",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"332",player:"Caleb Williams",team:"Chicago Bears",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:"Rookie Silver"},
+  {tcid:"TC-1R6ZT06O3B",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"332",player:"Caleb Williams",team:"Chicago Bears",card_type:"Auto",parallel:"Prizm Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto"},
+  {tcid:"TC-4S1AU43P7C",sport:"Football",manufacturer:"Panini",season:"2023",product:"Panini Prizm",card_num:"307",player:"C.J. Stroud",team:"Houston Texans",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:"Rookie"},
+  {tcid:"TC-8T5BV80Q2D",sport:"Football",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-CW1",player:"Caleb Williams",team:"Chicago Bears",card_type:"Auto",parallel:"Gold Auto",print_run:"25",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto /25"},
+  {tcid:"TC-3U9CW17R6E",sport:"Hockey",manufacturer:"Topps",season:"2024-25",product:"Topps NHL Hockey",card_num:"1",player:"Connor McDavid",team:"Edmonton Oilers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-7V4DX54S1F",sport:"Hockey",manufacturer:"Topps",season:"2024-25",product:"Topps NHL Hockey",card_num:"1",player:"Connor McDavid",team:"Edmonton Oilers",card_type:"Parallel",parallel:"Gold Foil",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-2W8EY91T5G",sport:"Hockey",manufacturer:"Topps",season:"2024-25",product:"Topps NHL Hockey",card_num:"1",player:"Connor McDavid",team:"Edmonton Oilers",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-5X3FZ28U9H",sport:"Hockey",manufacturer:"Topps",season:"2024-25",product:"Topps NHL Hockey",card_num:"97",player:"Nathan MacKinnon",team:"Colorado Avalanche",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-9Y7GA65V4I",sport:"Hockey",manufacturer:"Topps",season:"2023-24",product:"Topps NHL Hockey",card_num:"88",player:"David Pastrnak",team:"Boston Bruins",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-1Z2HB02W8J",sport:"Hockey",manufacturer:"Leaf",season:"2024-25",product:"Leaf ITG Used",card_num:"ITG-CM1",player:"Connor McDavid",team:"Edmonton Oilers",card_type:"Relic",parallel:"Base Relic",print_run:"",channel:"Hobby",autograph:"No",relic:"Yes",notes:"Game-used jersey"},
+  {tcid:"TC-4A6IC39X3K",sport:"Hockey",manufacturer:"Leaf",season:"2024-25",product:"Leaf ITG Used",card_num:"ITG-CM2",player:"Connor McDavid",team:"Edmonton Oilers",card_type:"Auto Relic",parallel:"Base Auto Relic",print_run:"10",channel:"Hobby",autograph:"Yes",relic:"Yes",notes:"Signed game-used /10"},
+  {tcid:"TC-8B1JD76Y7L",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"200",player:"Mookie Betts",team:"Los Angeles Dodgers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-3C5KE13Z2M",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"200",player:"Mookie Betts",team:"Los Angeles Dodgers",card_type:"Parallel",parallel:"1/1 Printing Plate Black",print_run:"1",channel:"Hobby",autograph:"No",relic:"No",notes:"1 of 1"},
+  {tcid:"TC-7D9LF50A6N",sport:"Baseball",manufacturer:"Topps",season:"2024",product:"Topps Series 1",card_num:"150",player:"Ronald Acuna Jr.",team:"Atlanta Braves",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-2E4MG87B1O",sport:"Baseball",manufacturer:"Topps",season:"2024",product:"Topps Series 1",card_num:"150",player:"Ronald Acuna Jr.",team:"Atlanta Braves",card_type:"Relic",parallel:"Gold Relic",print_run:"50",channel:"Hobby",autograph:"No",relic:"Yes",notes:"Jersey /50"},
+  {tcid:"TC-5F8NH24C5P",sport:"Basketball",manufacturer:"Panini",season:"2023-24",product:"Panini Prizm",card_num:"14",player:"Stephen Curry",team:"Golden State Warriors",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-9G3OI61D9Q",sport:"Basketball",manufacturer:"Panini",season:"2023-24",product:"Panini Prizm",card_num:"14",player:"Stephen Curry",team:"Golden State Warriors",card_type:"Parallel",parallel:"Hyper Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-1H7PJ98E4R",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"98",player:"Jayson Tatum",team:"Boston Celtics",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-6I2QK35F8S",sport:"Football",manufacturer:"Panini",season:"2023",product:"Panini Prizm",card_num:"100",player:"Josh Allen",team:"Buffalo Bills",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-0J6RL72G3T",sport:"Football",manufacturer:"Panini",season:"2023",product:"Panini Prizm",card_num:"100",player:"Josh Allen",team:"Buffalo Bills",card_type:"Parallel",parallel:"Silver Prizm",print_run:"",channel:"Hobby",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-4K1SM09H7U",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"101",player:"Lamar Jackson",team:"Baltimore Ravens",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-8L5TN46I2V",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"400",player:"Jayden Daniels",team:"Washington Commanders",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:"Rookie"},
+  {tcid:"TC-3M9UO83J6W",sport:"Football",manufacturer:"Panini",season:"2024",product:"Panini Prizm",card_num:"400",player:"Jayden Daniels",team:"Washington Commanders",card_type:"Auto",parallel:"Prizm Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto"},
+  {tcid:"TC-7N4VP20K1X",sport:"Baseball",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-PR1",player:"Paul Skenes",team:"Pittsburgh Pirates",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto"},
+  {tcid:"TC-2O8WQ57L5Y",sport:"Baseball",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-PR2",player:"Paul Skenes",team:"Pittsburgh Pirates",card_type:"Auto",parallel:"Gold Auto",print_run:"25",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto /25"},
+  {tcid:"TC-5P3XR94M9Z",sport:"Basketball",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-BJ2",player:"Bronny James",team:"Los Angeles Lakers",card_type:"Relic",parallel:"Base Relic",print_run:"",channel:"Hobby",autograph:"No",relic:"Yes",notes:""},
+  {tcid:"TC-9Q7YS31N4A",sport:"Hockey",manufacturer:"Topps",season:"2024-25",product:"Topps NHL Hockey",card_num:"29",player:"Leon Draisaitl",team:"Edmonton Oilers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-1R2ZT68O8B",sport:"Hockey",manufacturer:"Topps",season:"2023-24",product:"Topps NHL Hockey",card_num:"34",player:"Auston Matthews",team:"Toronto Maple Leafs",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-4S6AU05P3C",sport:"Hockey",manufacturer:"Topps",season:"2023-24",product:"Topps NHL Hockey",card_num:"34",player:"Auston Matthews",team:"Toronto Maple Leafs",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:""},
+  {tcid:"TC-8T1BV42Q7D",sport:"Baseball",manufacturer:"Topps",season:"2025",product:"Topps Series 1",card_num:"300",player:"Freddie Freeman",team:"Los Angeles Dodgers",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-3U5CW79R2E",sport:"Football",manufacturer:"Leaf",season:"2024",product:"Leaf Trinity",card_num:"T-JD1",player:"Jayden Daniels",team:"Washington Commanders",card_type:"Auto",parallel:"Base Auto",print_run:"",channel:"Hobby",autograph:"Yes",relic:"No",notes:"Rookie auto"},
+  {tcid:"TC-7V9DX16S6F",sport:"Basketball",manufacturer:"Panini",season:"2024-25",product:"Panini Prizm",card_num:"3",player:"Nikola Jokic",team:"Denver Nuggets",card_type:"Base",parallel:"Base",print_run:"",channel:"Hobby/Retail",autograph:"No",relic:"No",notes:""},
+  {tcid:"TC-2W4EY53T1G",sport:"Hockey",manufacturer:"Leaf",season:"2024-25",product:"Leaf ITG Used",card_num:"ITG-NM1",player:"Nathan MacKinnon",team:"Colorado Avalanche",card_type:"Relic",parallel:"Base Relic",print_run:"",channel:"Hobby",autograph:"No",relic:"Yes",notes:"Game-used jersey"},
+];
+
+// ============================================================
+// SEARCH ENGINE
+// ============================================================
+
+function setMode(mode) {
+  activeMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const input = document.getElementById('search-input');
+  const label = document.getElementById('search-label');
+  const placeholders = {
+    all: 'Search by player, TCID, product, team...',
+    tcid: 'Enter TCID code e.g. TC-4X7KQ29R3A',
+    player: 'Enter player name e.g. Aaron Judge',
+    product: 'Enter product name e.g. Panini Prizm'
+  };
+  const labels = {
+    all: 'SEARCH THE REGISTRY',
+    tcid: 'LOOKUP BY TCID',
+    player: 'SEARCH BY PLAYER',
+    product: 'SEARCH BY PRODUCT'
+  };
+  input.placeholder = placeholders[mode];
+  label.textContent = labels[mode];
+
+  if (input.value.trim()) runSearch();
+}
+
+function toggleFilter(el, type, val) {
+  // Deactivate siblings in same group
+  const siblings = el.parentElement.querySelectorAll(`.filter-chip[onclick*="'${type}'"]`);
+  siblings.forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  activeFilters[type] = val;
+  if (document.getElementById('search-input').value.trim() || val) runSearch();
+}
+
+function matchRecord(rec, query) {
+  const q = query.toLowerCase().trim();
+  if (!q) return true;
+
+  switch(activeMode) {
+    case 'tcid':
+      return rec.tcid.toLowerCase().includes(q);
+    case 'player':
+      return rec.player.toLowerCase().includes(q);
+    case 'product':
+      return rec.product.toLowerCase().includes(q) || rec.season.includes(q);
+    default:
+      return (
+        rec.tcid.toLowerCase().includes(q) ||
+        rec.player.toLowerCase().includes(q) ||
+        rec.product.toLowerCase().includes(q) ||
+        rec.team.toLowerCase().includes(q) ||
+        rec.parallel.toLowerCase().includes(q) ||
+        rec.manufacturer.toLowerCase().includes(q) ||
+        rec.sport.toLowerCase().includes(q) ||
+        rec.card_type.toLowerCase().includes(q) ||
+        rec.season.includes(q) ||
+        rec.card_num.toLowerCase().includes(q)
+      );
+  }
+}
+
+function applyFilters(records) {
+  return records.filter(r => {
+    if (activeFilters.sport && r.sport !== activeFilters.sport) return false;
+    if (activeFilters.mfr && r.manufacturer !== activeFilters.mfr) return false;
+    if (activeFilters.type === 'auto' && r.autograph !== 'Yes') return false;
+    if (activeFilters.type === 'relic' && r.relic !== 'Yes') return false;
+    return true;
+  });
+}
+
+async function runSearch() {
+  const query = document.getElementById('search-input').value.trim();
+  const container = document.getElementById('results-container');
+  const initialState = document.getElementById('initial-state');
+
+  // Show loading if no query and no filters active
+  const hasFilter = activeFilters.sport || activeFilters.mfr || activeFilters.type;
+  if (!query && !hasFilter) {
+    container.style.display = 'none';
+    initialState.style.display = 'block';
+    return;
+  }
+
+  initialState.style.display = 'none';
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="state-message">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;">QUERYING REGISTRY</div>
+    </div>`;
+
+  let results;
+
+  if (USE_API && API_ENDPOINT) {
+    // Live API path -- swap in your Snowflake endpoint
+    try {
+      const resp = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, mode: activeMode, filters: activeFilters })
+      });
+      const data = await resp.json();
+      results = data.results || [];
+    } catch(e) {
+      results = [];
+    }
+  } else {
+    // Demo path -- search local data with small delay for realism
+    await new Promise(r => setTimeout(r, 180));
+    results = applyFilters(REGISTRY.filter(r => matchRecord(r, query)));
+  }
+
+  renderResults(results, query);
+}
+
+function renderResults(results, query) {
+  const container = document.getElementById('results-container');
+
+  if (results.length === 0) {
+    container.innerHTML = `
+      <div class="state-message fade-in">
+        <div class="state-icon">◯</div>
+        <div class="state-title">No records found</div>
+        <div class="state-sub">Try a different search term or adjust your filters. The demo registry contains 60 representative records from the V2 prototype.</div>
+      </div>`;
+    return;
+  }
+
+  const header = `
+    <div class="results-header fade-in">
+      <div class="results-count"><strong>${results.length}</strong> record${results.length !== 1 ? 's' : ''} found${query ? ` for &ldquo;${escHtml(query)}&rdquo;` : ''}</div>
+      <div class="results-count" style="font-size:11px">DEMO DATA &mdash; 60 OF 5,024 RECORDS</div>
+    </div>`;
+
+  const cards = results.map((r, i) => renderCard(r, i)).join('');
+  container.innerHTML = header + cards;
+}
+
+function renderCard(r, idx) {
+  const tags = [];
+  tags.push(`<span class="tag tag-sport">${r.sport}</span>`);
+  tags.push(`<span class="tag tag-mfr">${r.manufacturer}</span>`);
+  if (r.parallel && r.parallel !== 'Base') tags.push(`<span class="tag tag-parallel">${r.parallel}</span>`);
+  if (r.autograph === 'Yes') tags.push(`<span class="tag tag-auto">AUTO</span>`);
+  if (r.relic === 'Yes') tags.push(`<span class="tag tag-relic">RELIC</span>`);
+
+  return `
+    <div class="result-card fade-in" style="animation-delay:${Math.min(idx * 0.04, 0.4)}s" onclick="toggleCard(this)">
+      <div class="card-top">
+        <div class="card-main">
+          <div class="card-tcid">${r.tcid}</div>
+          <div class="card-player">${escHtml(r.player)}</div>
+          <div class="card-product">${escHtml(r.season)} ${escHtml(r.product)} &middot; #${r.card_num} &middot; ${escHtml(r.team)}</div>
+          <div class="card-tags">${tags.join('')}</div>
+        </div>
+        <svg class="card-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          ${detailField('TCID', r.tcid, true)}
+          ${detailField('Player', r.player)}
+          ${detailField('Sport', r.sport)}
+          ${detailField('Manufacturer', r.manufacturer)}
+          ${detailField('Season', r.season)}
+          ${detailField('Product', r.product)}
+          ${detailField('Card Number', r.card_num)}
+          ${detailField('Team', r.team)}
+          ${detailField('Card Type', r.card_type)}
+          ${detailField('Parallel', r.parallel || '--')}
+          ${detailField('Print Run', r.print_run || 'Unlimited')}
+          ${detailField('Channel', r.channel)}
+          ${detailField('Autograph', r.autograph)}
+          ${detailField('Relic', r.relic)}
+          ${r.notes ? detailField('Notes', r.notes) : ''}
+        </div>
+        <button class="copy-tcid-btn" onclick="copyTCID(event, '${r.tcid}', this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy TCID
+        </button>
+      </div>
+    </div>`;
+}
+
+function detailField(key, val, mono = false) {
+  const isEmpty = !val || val === '--';
+  return `
+    <div class="detail-field">
+      <div class="detail-key">${key}</div>
+      <div class="detail-val ${mono ? 'mono' : ''} ${isEmpty ? 'empty' : ''}">${isEmpty ? 'N/A' : escHtml(val)}</div>
+    </div>`;
+}
+
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+function copyTCID(e, tcid, btn) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(tcid).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 15 4 10"/>
+      </svg>
+      Copied`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Copy TCID`;
+    }, 2000);
+  });
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Enter key triggers search
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+
+// Live search with debounce
+let debounceTimer;
+document.getElementById('search-input').addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(runSearch, 300);
+});
+</script>
+</body>
+</html>
